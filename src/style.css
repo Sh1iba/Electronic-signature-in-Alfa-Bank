@@ -1,0 +1,32 @@
+/* style.css */
+.modal-content {
+    width: 100%;
+    height: 600px;
+    border-radius: 8px;
+    background-color: rgba(55, 120, 251, 0.1);
+    border: 1px dashed rgb(55, 120, 251);
+    box-sizing: border-box;
+}
+
+.modal-footer {
+    width: 100%;
+    height: 48px;
+    border-radius: 8px;
+    background-color: rgba(55, 120, 251, 0.1);
+    border: 1px dashed rgb(55, 120, 251);
+    box-sizing: border-box;
+}
+
+.modal-button {
+    background-color: #3778fb;
+    border-radius: 5px;
+    padding: 10px 20px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+}
+
+.modal-button:hover {
+    background-color: #2968d9;
+}
