@@ -1,32 +1,15 @@
 import React, { useState } from "react";
+import { userData as initialUserData } from "../data"; // Импорт начальных данных с переименованием
 import "../style.css";
 
 function App() {
-    const [userData, setUserData] = useState({
-        clientId: 1,
-        organizationId: 101,
-        segment: "Средний бизнес",
-        role: "Сотрудник",
-        organizations: 3,
-        mobileApp: true,
-        signatures: {
-            common: { mobile: 0, web: 10 },
-            special: { mobile: 0, web: 6 },
-        },
-        availableMethods: ["SMS", "PayControl"],
-        claims: 82,
-        hasAccount: true,
-        web: true,
-        mobile: false,
-    });
-
+    const [userData, setUserData] = useState(initialUserData); // Используем данные из data.js
     const [isModalOpen, setModalOpen] = useState(false);
 
-    const handleExclusiveToggle = (field) => {
+    const handleDeviceToggle = (device) => {
         setUserData({
             ...userData,
-            web: field === "web",
-            mobile: field === "mobile",
+            currentDevice: device,
         });
     };
 
@@ -80,8 +63,26 @@ function App() {
         });
     };
 
-    const handleApply = () => {
-        setModalOpen(true);
+    const handleApply = async () => {
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/recommend/get", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(userData),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch recommendations");
+            }
+
+            const result = await response.json();
+            console.log("Ответ от сервера:", result);
+            setModalOpen(true);
+        } catch (error) {
+            console.error("Ошибка при отправке данных:", error);
+        }
     };
 
     const handleModalClose = () => {
@@ -97,29 +98,31 @@ function App() {
 
             <h1 className="title">Контекст</h1>
 
-            {/* Чекбоксы заменены на кнопки-переключатели */}
             <div className="toggle-group">
                 <button
-                    className={`toggle-button ${userData.web ? "active" : ""}`}
-                    onClick={() => handleExclusiveToggle("web")}
+                    className={`toggle-button ${
+                        userData.currentDevice === "web" ? "active" : ""
+                    }`}
+                    onClick={() => handleDeviceToggle("web")}
                 >
                     Web
                 </button>
                 <button
-                    className={`toggle-button ${userData.mobile ? "active" : ""}`}
-                    onClick={() => handleExclusiveToggle("mobile")}
+                    className={`toggle-button ${
+                        userData.currentDevice === "mobile" ? "active" : ""
+                    }`}
+                    onClick={() => handleDeviceToggle("mobile")}
                 >
                     Mobile
                 </button>
                 <button
-                    className={`toggle-button ${userData.hasAccount ? "active" : ""}`}
-                    onClick={() => handleToggle("hasAccount")}
+                    className={`toggle-button ${userData.isFirstLogIn ? "active" : ""}`}
+                    onClick={() => handleToggle("isFirstLogIn")}
                 >
-                    Есть аккаунт
+                    Первый вход
                 </button>
             </div>
 
-            {/* Форма для изменения данных пользователя */}
             <div className="form">
                 <h2 className="form-title">Данные о пользователе</h2>
 
@@ -169,7 +172,6 @@ function App() {
                     />
                 </label>
 
-                {/* Подключенные способы подписания */}
                 <label>
                     Уже подключенные способы подписания:
                     <div className="methods">
@@ -239,7 +241,6 @@ function App() {
                 </label>
             </div>
 
-            {/* Наличие мобильного приложения */}
             <label>
                 Наличие мобильного приложения:
                 <button
@@ -250,18 +251,16 @@ function App() {
                 </button>
             </label>
 
-            {/* Кнопка "Применить" */}
             <button className="apply-button" onClick={handleApply}>
                 Применить
             </button>
 
-            {/* Модальное окно с рекомендацией */}
             {isModalOpen && (
                 <div className="modal">
                     <div className="modal-content">
                         <h2>Рекомендации</h2>
                         <p>
-                            {userData.mobile
+                            {userData.currentDevice === "mobile"
                                 ? "Рекомендуется использовать мобильное приложение."
                                 : "Рекомендуется использовать веб-версию."}
                         </p>
