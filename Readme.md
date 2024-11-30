@@ -1,5 +1,5 @@
 
-# Alpha Bank Hackathon - Front-End Task ![Alpha Bank Logo](png/alfa@2x.png)
+# Alpha Bank Hackathon - Front-End Task ![Alpha Bank Logo](alfa@2x.png)
 
 This project is part of the front-end challenge for the Alpha Bank Hackathon. The task involves creating a React application that interacts with an API by sending data via POST requests and displaying the responses in the UI.
 
