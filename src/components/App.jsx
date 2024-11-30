@@ -1,112 +1,278 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from 'your-component-library';
-import Header from './Header';
-import requestData from '../data';  // Импортируем данные для отправки из data.js
-import '../style.css';  // Импортируем стили
+import React, { useState } from "react";
+import "../style.css";
 
-const App = () => {
-    const [modalAnatomy, setModalAnatomy] = useState(false);
-    const [apiData, setApiData] = useState(null); // Для хранения данных от API
-    const [responseMessage, setResponseMessage] = useState(''); // Для хранения ответа от сервера
+function App() {
+    const [userData, setUserData] = useState({
+        clientId: 1,
+        organizationId: 101,
+        segment: "Средний бизнес",
+        role: "Сотрудник",
+        organizations: 3,
+        mobileApp: true,
+        signatures: {
+            common: { mobile: 0, web: 10 },
+            special: { mobile: 0, web: 6 },
+        },
+        availableMethods: ["SMS", "PayControl"],
+        claims: 82,
+        hasAccount: true,
+        web: true,
+        mobile: false,
+    });
 
-    const handleModalAnatomy = () => {
-        setModalAnatomy(!modalAnatomy);
+    const [isModalOpen, setModalOpen] = useState(false);
+
+    const handleExclusiveToggle = (field) => {
+        setUserData({
+            ...userData,
+            web: field === "web",
+            mobile: field === "mobile",
+        });
     };
 
-    // Функция для получения данных с API с использованием async/await
-    const fetchRecommendation = async () => {
-        console.log('Начало запроса к API');
-        try {
-            // Используем рабочий API (JSONPlaceholder)
-            const response = await fetch('https://jsonplaceholder.typicode.com/posts/1'); // Пример API
-            if (!response.ok) {
-                throw new Error(`Ошибка HTTP: ${response.status}`);
-            }
-            const data = await response.json();
-            setApiData(data); // Сохраняем весь объект данных
-            console.log('Успешный ответ от API', data);
-        } catch (error) {
-            console.error('Ошибка при получении данных:', error);
-        }
+    const handleToggle = (field) => {
+        setUserData({ ...userData, [field]: !userData[field] });
     };
 
-    // Используем useEffect для выполнения запроса при монтировании компонента
-    useEffect(() => {
-        fetchRecommendation(); // Запускаем функцию получения данных
-    }, []); // Эффект выполнится один раз при монтировании компонента
+    const handleAvailableMethodsChange = (method) => {
+        setUserData({
+            ...userData,
+            availableMethods: userData.availableMethods.includes(method)
+                ? userData.availableMethods.filter((m) => m !== method)
+                : [...userData.availableMethods, method],
+        });
+    };
 
-    const sendData = () => {
-        // Отправляем данные с помощью POST-запроса
-        fetch('https://jsonplaceholder.typicode.com/posts', { // Замените на нужный URL API
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+    const handleInputChange = (field, value) => {
+        const parsedValue = isNaN(value) ? value : parseInt(value, 10);
+        setUserData({ ...userData, [field]: parsedValue });
+    };
+
+    const handleNestedInputChange = (field, value) => {
+        const keys = field.split(".");
+        setUserData({
+            ...userData,
+            [keys[0]]: {
+                ...userData[keys[0]],
+                [keys[1]]: {
+                    ...userData[keys[0]][keys[1]],
+                    [keys[2]]: parseInt(value, 10),
+                },
             },
-            body: JSON.stringify(requestData), // Используем данные из data.js
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                setResponseMessage('Данные успешно отправлены!');
-                console.log('Ответ от сервера:', data); // Выводим данные ответа от сервера
-            })
-            .catch((error) => {
-                setResponseMessage('Произошла ошибка при отправке данных');
-                console.error('Ошибка при отправке данных:', error);
-            });
+        });
+    };
+
+    const handleMobileAppChange = () => {
+        setUserData({
+            ...userData,
+            mobileApp: !userData.mobileApp,
+            signatures: {
+                ...userData.signatures,
+                common: {
+                    ...userData.signatures.common,
+                    mobile: !userData.mobileApp ? 0 : userData.signatures.common.mobile,
+                },
+                special: {
+                    ...userData.signatures.special,
+                    mobile: !userData.mobileApp ? 0 : userData.signatures.special.mobile,
+                },
+            },
+        });
+    };
+
+    const handleApply = () => {
+        setModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setModalOpen(false);
     };
 
     return (
-        <div>
-            {/* Добавляем иконку и текст в левом верхнем углу */}
-            {modalAnatomy && (
-                <div className="modal-header">
-                    <i className="fas fa-building"></i> {/* Иконка Альфа-Банка */}
-                    <span className="logo-text">Альфа Бизнес</span>
-                </div>
-            )}
+        <div className="app">
+            {/* Иконка Альфа-Банка */}
+            <div className="logo">
+                <img src="/alpha-bank-logo.png" alt="Alpha Bank" className="logo-img" />
+            </div>
 
-            <Button
-                className="modal-button"
-                type="button"
-                size="s"
-                onClick={handleModalAnatomy}
-            >
-                Показать анатомию
-            </Button>
+            <h1 className="title">Контекст</h1>
 
-            {modalAnatomy && (
-                <div className="modal">
-                    <Header />
-                    <div className="modal-content">
-                        {/* Проверяем, есть ли данные и выводим весь объект */}
-                        {apiData ? (
-                            <div>
-                                <h2>Ответ от API:</h2>
-                                {/* Преобразуем весь объект в строку с помощью JSON.stringify */}
-                                <pre>{JSON.stringify(apiData, null, 2)}</pre>
-                            </div>
-                        ) : (
-                            <p>Загрузка данных...</p> // Если данные еще не загружены
-                        )}
+            {/* Чекбоксы заменены на кнопки-переключатели */}
+            <div className="toggle-group">
+                <button
+                    className={`toggle-button ${userData.web ? "active" : ""}`}
+                    onClick={() => handleExclusiveToggle("web")}
+                >
+                    Web
+                </button>
+                <button
+                    className={`toggle-button ${userData.mobile ? "active" : ""}`}
+                    onClick={() => handleExclusiveToggle("mobile")}
+                >
+                    Mobile
+                </button>
+                <button
+                    className={`toggle-button ${userData.hasAccount ? "active" : ""}`}
+                    onClick={() => handleToggle("hasAccount")}
+                >
+                    Есть аккаунт
+                </button>
+            </div>
+
+            {/* Форма для изменения данных пользователя */}
+            <div className="form">
+                <h2 className="form-title">Данные о пользователе</h2>
+
+                <label>
+                    ИД пользователя:
+                    <input
+                        type="number"
+                        value={userData.clientId}
+                        onChange={(e) => handleInputChange("clientId", e.target.value)}
+                    />
+                </label>
+                <label>
+                    ИД организации:
+                    <input
+                        type="number"
+                        value={userData.organizationId}
+                        onChange={(e) => handleInputChange("organizationId", e.target.value)}
+                    />
+                </label>
+                <label>
+                    Сегмент:
+                    <select
+                        value={userData.segment}
+                        onChange={(e) => handleInputChange("segment", e.target.value)}
+                    >
+                        <option value="Малый бизнес">Малый бизнес</option>
+                        <option value="Средний бизнес">Средний бизнес</option>
+                        <option value="Крупный бизнес">Крупный бизнес</option>
+                    </select>
+                </label>
+                <label>
+                    Роль:
+                    <select
+                        value={userData.role}
+                        onChange={(e) => handleInputChange("role", e.target.value)}
+                    >
+                        <option value="ЕИО">ЕИО</option>
+                        <option value="Сотрудник">Сотрудник</option>
+                    </select>
+                </label>
+                <label>
+                    Количество организаций:
+                    <input
+                        type="number"
+                        value={userData.organizations}
+                        onChange={(e) => handleInputChange("organizations", e.target.value)}
+                    />
+                </label>
+
+                {/* Подключенные способы подписания */}
+                <label>
+                    Уже подключенные способы подписания:
+                    <div className="methods">
+                        {["SMS", "PayControl", "КЭП на токене", "КЭП в приложении"].map((method) => (
+                            <button
+                                key={method}
+                                className={`toggle-button ${
+                                    userData.availableMethods.includes(method) ? "active" : ""
+                                }`}
+                                onClick={() => handleAvailableMethodsChange(method)}
+                            >
+                                {method}
+                            </button>
+                        ))}
                     </div>
-                    <div className="modal-footer"></div>
+                </label>
+
+                <label>
+                    Количество подписанных базовых документов (Mobile):
+                    <input
+                        type="number"
+                        value={userData.signatures.common.mobile}
+                        onChange={(e) =>
+                            handleNestedInputChange("signatures.common.mobile", e.target.value)
+                        }
+                        disabled={!userData.mobileApp}
+                    />
+                </label>
+                <label>
+                    Количество подписанных базовых документов (Web):
+                    <input
+                        type="number"
+                        value={userData.signatures.common.web}
+                        onChange={(e) =>
+                            handleNestedInputChange("signatures.common.web", e.target.value)
+                        }
+                    />
+                </label>
+                <label>
+                    Количество подписанных документов особой важности (Mobile):
+                    <input
+                        type="number"
+                        value={userData.signatures.special.mobile}
+                        onChange={(e) =>
+                            handleNestedInputChange("signatures.special.mobile", e.target.value)
+                        }
+                        disabled={!userData.mobileApp}
+                    />
+                </label>
+                <label>
+                    Количество подписанных документов особой важности (Web):
+                    <input
+                        type="number"
+                        value={userData.signatures.special.web}
+                        onChange={(e) =>
+                            handleNestedInputChange("signatures.special.web", e.target.value)
+                        }
+                    />
+                </label>
+                <label>
+                    Наличие обращений в банк:
+                    <input
+                        type="number"
+                        value={userData.claims}
+                        onChange={(e) => handleInputChange("claims", e.target.value)}
+                    />
+                </label>
+            </div>
+
+            {/* Наличие мобильного приложения */}
+            <label>
+                Наличие мобильного приложения:
+                <button
+                    className={`toggle-button ${userData.mobileApp ? "active" : ""}`}
+                    onClick={handleMobileAppChange}
+                >
+                    {userData.mobileApp ? "Активировано" : "Не активировано"}
+                </button>
+            </label>
+
+            {/* Кнопка "Применить" */}
+            <button className="apply-button" onClick={handleApply}>
+                Применить
+            </button>
+
+            {/* Модальное окно с рекомендацией */}
+            {isModalOpen && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h2>Рекомендации</h2>
+                        <p>
+                            {userData.mobile
+                                ? "Рекомендуется использовать мобильное приложение."
+                                : "Рекомендуется использовать веб-версию."}
+                        </p>
+                        <button className="close-button" onClick={handleModalClose}>
+                            Закрыть
+                        </button>
+                    </div>
                 </div>
             )}
-
-            {/* Кнопка для отправки данных */}
-            <Button
-                className="send-button"
-                type="button"
-                size="s"
-                onClick={sendData}
-            >
-                Отправить данные
-            </Button>
-
-            {/* Сообщение о результате отправки */}
-            {responseMessage && <p>{responseMessage}</p>}
         </div>
     );
-};
+}
 
 export default App;
