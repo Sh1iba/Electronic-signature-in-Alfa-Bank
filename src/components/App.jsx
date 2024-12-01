@@ -73,6 +73,7 @@ function App() {
                 },
                 body: JSON.stringify(userData),
             });
+            console.log("JSON на отправку:", userData);
 
             if (!response.ok) {
                 throw new Error("Failed to fetch recommendations");
@@ -89,6 +90,10 @@ function App() {
 
     const handleModalClose = () => {
         setModalOpen(false);
+    };
+
+    const handleCurrentMethodChange = (value) => {
+        setUserData({ ...userData, currentMethod: value });
     };
 
     return (
@@ -171,7 +176,18 @@ function App() {
                         onChange={(e) => handleInputChange("organizations", e.target.value)}
                     />
                 </label>
-
+                <label>
+                    Текущий метод подписания:
+                    <select
+                        value={userData.currentMethod}
+                        onChange={(e) => handleCurrentMethodChange(e.target.value)}
+                    >
+                    <option value="SMS">SMS</option>
+                    <option value="PayControl">PayControl</option>
+                    <option value="КЭП на токене">КЭП на токене</option>
+                    <option value="КЭП в приложении">КЭП в приложении</option>
+                    </select>
+                </label>
                 <label>
                     Уже подключенные способы подписания:
                     <div className="methods">
