@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { userData as initialUserData } from "../data"; // Импорт начальных данных с переименованием
+import { userData as initialUserData } from "../data"; // Импорт начальных данных
 import "../style.css";
 
 function App() {
     const [userData, setUserData] = useState(initialUserData); // Используем данные из data.js
     const [isModalOpen, setModalOpen] = useState(false);
+    const [recommendations, setRecommendations] = useState(null); // Добавляем состояние для рекомендаций
 
     const handleDeviceToggle = (device) => {
         setUserData({
@@ -72,6 +73,7 @@ function App() {
                 },
                 body: JSON.stringify(userData),
             });
+            console.log("JSON на отправку:", userData);
 
             if (!response.ok) {
                 throw new Error("Failed to fetch recommendations");
@@ -79,7 +81,8 @@ function App() {
 
             const result = await response.json();
             console.log("Ответ от сервера:", result);
-            setModalOpen(true);
+            setRecommendations(result); // Сохраняем полученные рекомендации
+            setModalOpen(true); // Открываем модальное окно
         } catch (error) {
             console.error("Ошибка при отправке данных:", error);
         }
@@ -89,31 +92,33 @@ function App() {
         setModalOpen(false);
     };
 
+    const handleCurrentMethodChange = (value) => {
+        setUserData({ ...userData, currentMethod: value });
+    };
+
     return (
         <div className="app">
-            {/* Иконка Альфа-Банка */}
             <div className="logo">
                 <img src="/alpha-bank-logo.png" alt="Alpha Bank" className="logo-img" />
             </div>
 
             <h1 className="title">Контекст</h1>
-
             <div className="toggle-group">
                 <button
                     className={`toggle-button ${
-                        userData.currentDevice === "web" ? "active" : ""
+                        userData.currentDevice === "ПК" ? "active" : ""
                     }`}
-                    onClick={() => handleDeviceToggle("web")}
+                    onClick={() => handleDeviceToggle("ПК")}
                 >
-                    Web
+                    ПК
                 </button>
                 <button
                     className={`toggle-button ${
-                        userData.currentDevice === "mobile" ? "active" : ""
+                        userData.currentDevice === "Мобильное устройство" ? "active" : ""
                     }`}
-                    onClick={() => handleDeviceToggle("mobile")}
+                    onClick={() => handleDeviceToggle("Мобильное устройство")}
                 >
-                    Mobile
+                    Мобильное устройство
                 </button>
                 <button
                     className={`toggle-button ${userData.isFirstLogIn ? "active" : ""}`}
@@ -171,7 +176,18 @@ function App() {
                         onChange={(e) => handleInputChange("organizations", e.target.value)}
                     />
                 </label>
-
+                <label>
+                    Текущий метод подписания:
+                    <select
+                        value={userData.currentMethod}
+                        onChange={(e) => handleCurrentMethodChange(e.target.value)}
+                    >
+                    <option value="SMS">SMS</option>
+                    <option value="PayControl">PayControl</option>
+                    <option value="КЭП на токене">КЭП на токене</option>
+                    <option value="КЭП в приложении">КЭП в приложении</option>
+                    </select>
+                </label>
                 <label>
                     Уже подключенные способы подписания:
                     <div className="methods">
@@ -231,6 +247,7 @@ function App() {
                         }
                     />
                 </label>
+
                 <label>
                     Наличие обращений в банк:
                     <input
@@ -241,16 +258,6 @@ function App() {
                 </label>
             </div>
 
-            <label>
-                Наличие мобильного приложения:
-                <button
-                    className={`toggle-button ${userData.mobileApp ? "active" : ""}`}
-                    onClick={handleMobileAppChange}
-                >
-                    {userData.mobileApp ? "Активировано" : "Не активировано"}
-                </button>
-            </label>
-
             <button className="apply-button" onClick={handleApply}>
                 Применить
             </button>
@@ -259,11 +266,7 @@ function App() {
                 <div className="modal">
                     <div className="modal-content">
                         <h2>Рекомендации</h2>
-                        <p>
-                            {userData.currentDevice === "mobile"
-                                ? "Рекомендуется использовать мобильное приложение."
-                                : "Рекомендуется использовать веб-версию."}
-                        </p>
+                        <p>{recommendations ? recommendations.recommend : "Загрузка..."}</p>
                         <button className="close-button" onClick={handleModalClose}>
                             Закрыть
                         </button>
