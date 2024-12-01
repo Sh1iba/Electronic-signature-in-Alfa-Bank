@@ -66,10 +66,10 @@ function App() {
 
     const handleApply = async () => {
         try {
-            const response = await fetch("http://localhost:8080/api/v1/recommend/get", {
+            const response = await fetch("http://176.108.251.22:8080/api/v1/recommend/get", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(userData),
             });
