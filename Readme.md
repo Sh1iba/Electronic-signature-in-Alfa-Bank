@@ -40,7 +40,7 @@
 ### ⚡ Как использовать
 
 1. **Склонируйте репозиторий:**:
-   ```bash
+  ```bash
    git clone https://github.com/your_project.git
    cd your_project
    ```
