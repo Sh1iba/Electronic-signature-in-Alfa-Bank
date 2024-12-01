@@ -5,6 +5,7 @@ import "../style.css";
 function App() {
     const [userData, setUserData] = useState(initialUserData); // Используем данные из data.js
     const [isModalOpen, setModalOpen] = useState(false);
+    const [recommendations, setRecommendations] = useState(null); // Добавляем состояние для рекомендаций
 
     const handleDeviceToggle = (device) => {
         setUserData({
@@ -63,6 +64,7 @@ function App() {
         });
     };
 
+    // Функция для отправки данных на сервер и получения рекомендаций
     const handleApply = async () => {
         try {
             const response = await fetch("http://localhost:8080/api/v1/recommend/get", {
@@ -79,7 +81,8 @@ function App() {
 
             const result = await response.json();
             console.log("Ответ от сервера:", result);
-            setModalOpen(true);
+            setRecommendations(result); // Сохраняем полученные рекомендации
+            setModalOpen(true); // Открываем модальное окно
         } catch (error) {
             console.error("Ошибка при отправке данных:", error);
         }
@@ -259,11 +262,8 @@ function App() {
                 <div className="modal">
                     <div className="modal-content">
                         <h2>Рекомендации</h2>
-                        <p>
-                            {userData.currentDevice === "mobile"
-                                ? "Рекомендуется использовать мобильное приложение."
-                                : "Рекомендуется использовать веб-версию."}
-                        </p>
+                        {/* Отображаем полученные рекомендации */}
+                        <p>{recommendations ? recommendations.message : "Загрузка..."}</p>
                         <button className="close-button" onClick={handleModalClose}>
                             Закрыть
                         </button>
